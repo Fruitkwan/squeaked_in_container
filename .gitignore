@@ -1,5 +1,11 @@
 # Git ignore file for Squeak KestrelView Docker project
 
+# Squeak image files (too large for GitHub)
+*.image
+*.changes
+TPR-KestrelView-*.image
+TPR-KestrelView-*.changes
+
 # Docker volumes and runtime data
 image-data/
 
