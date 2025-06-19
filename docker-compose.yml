@@ -1,0 +1,66 @@
+services:
+  # VNC version (recommended for Apple Silicon Mac)
+  kestrel-vnc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/arm64
+      args:
+        SSH_USER: squeak
+    container_name: kestrel-vnc
+    ports:
+      - "5900:5900"
+      - "8088:8088"
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - ./image-data:/app/image-data:rw
+    environment:
+      - DISPLAY=:1
+    command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+    restart: unless-stopped
+
+  # SSH X11 Forwarding version (alternative)
+  kestrel-ssh:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/arm64
+      args:
+        SSH_USER: squeak
+    container_name: kestrel-ssh
+    ports:
+      - "2222:22"
+      - "8088:8088"
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - ./image-data:/app/image-data:rw
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    command: /app/scripts/start-ssh.sh
+    restart: unless-stopped
+
+  # Direct X11 version (for XQuartz)
+  kestrel-x11:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/arm64
+      args:
+        SSH_USER: squeak
+    container_name: kestrel-x11
+    ports:
+      - "8088:8088"
+    cap_add:
+      - SYS_ADMIN
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./image-data:/app/image-data:rw
+    environment:
+      - DISPLAY=${DISPLAY:-host.docker.internal:0}
+    command: /app/scripts/start-squeak.sh
+    network_mode: host
