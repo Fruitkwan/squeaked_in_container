@@ -1,15 +1,49 @@
-# Squeak VM Docker Setup
+# KestrelView Squeak/Smalltalk Docker Setup
 
-This setup provides multiple ways to run Squeak Smalltalk in Docker containers with GUI access.
+This setup provides a modern, persistent Dockerized environment to run Squeak Smalltalk (KestrelView) with multi-platform support for both Apple Silicon (ARM64) and Intel/AMD64 systems, with multiple GUI access methods.
 
-## Quick Start
+## Prerequisites
 
-1. **Build the container:**
+**Important:** You need to obtain the Squeak image file separately, as it's excluded from this repository due to size constraints.
+
+1. **Obtain the Squeak image file:**
+   - Download `TPR-KestrelView-DemoVersion-2023-07-15-64bit.image`
+   - Place it in the `/squeak/` directory alongside this README
+   - The image file should be at: `/squeak/TPR-KestrelView-DemoVersion-2023-07-15-64bit.image`
+   - **Note:** Contact the KestrelView project maintainers or check project documentation for image file availability
+
+2. **Build the container (one-time setup):**
+
    ```bash
    ./build.sh
    ```
 
-2. **Choose your preferred access method:**
+## Persistent Workflow
+
+After the initial build, the container is fully persistent. Simply:
+
+1. **Start your preferred container:**
+
+   ```bash
+   # For VNC access (recommended)
+   docker-compose up kestrel-vnc -d
+   
+   # OR for X11 direct access  
+   docker-compose up kestrel-x11 -d
+   
+   # OR for SSH X11 forwarding
+   docker-compose up kestrel-ssh -d
+   ```
+
+2. **Connect using your chosen method (see below)**
+
+3. **Stop when done:**
+
+   ```bash
+   docker-compose down
+   ```
+
+**No manual script copying or execution needed!** Everything is built into the container.
 
 ## Access Methods
 
@@ -280,3 +314,27 @@ To modify Squeak images or add custom code:
 1. Place files in `image-data/` directory
 2. They will be available in `/app/image-data/` inside the container
 3. Restart the appropriate service
+
+## Summary
+
+This setup provides a **fully persistent** Docker environment for KestrelView:
+
+- **Multi-platform support:** Works on both Apple Silicon (ARM64) and Intel/AMD64 systems
+- **One-time setup:** Build the image with `./build.sh`
+- **Daily use:** Simply run `docker-compose up kestrel-vnc -d` and connect
+- **No manual steps:** All scripts and configurations are built into the container
+- **Persistent data:** The `image-data/` directory preserves your work between sessions
+- **Modern VM:** Uses the latest OpenSmalltalk VM with automatic platform detection
+
+The container automatically detects your system architecture and downloads the appropriate OpenSmalltalk VM (ARM64 or x86_64), then runs it directly (bypassing the old system VM) with multiple access methods for maximum compatibility.
+
+## Platform Support
+
+### Supported Platforms:
+- **Apple Silicon (ARM64):** MacBook Pro M1/M2/M3, Mac Studio, Mac Mini M1/M2
+- **Intel/AMD64:** Traditional Intel Macs, Linux systems, Windows with WSL2
+
+### Platform-Specific Notes:
+- **Apple Silicon:** Uses `squeak.cog.spur_linux64ARMv8.tar.gz`
+- **Intel/AMD64:** Uses `squeak.cog.spur_linux64x64.tar.gz`
+- **Docker:** Automatically builds the correct image for your platform

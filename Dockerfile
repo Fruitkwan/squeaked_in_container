@@ -1,6 +1,6 @@
 # Dockerfile for Squeak Smalltalk with SSH X11 forwarding and VNC support
-# Optimized for Apple Silicon (ARM64)
-FROM --platform=linux/arm64 ubuntu:22.04
+# Multi-platform support: ARM64 (Apple Silicon) and AMD64 (Intel/AMD)
+FROM ubuntu:22.04
 
 # Build arguments
 ARG SSH_KEY
@@ -56,17 +56,29 @@ RUN apt-get clean && apt-get update --fix-missing && apt-get install -y --fix-mi
     file \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
-# Download and install the latest OpenSmalltalk VM for ARM64 (compatible with Apple Silicon)
+# Download and install the latest OpenSmalltalk VM (platform-aware)
 RUN mkdir -p /opt/opensmalltalk-vm && \
     cd /opt/opensmalltalk-vm && \
-    # Get the latest release for Linux ARM64
-    wget -q -O vm.tar.gz "https://github.com/OpenSmalltalk/opensmalltalk-vm/releases/download/202312181441/squeak.cog.spur_linux64ARMv8.tar.gz" && \
-    tar -xzf vm.tar.gz && \
-    rm vm.tar.gz && \
-    # Make the VM executable and create a symlink
-    chmod +x sqcogspur64ARMv8linuxht/squeak && \
-    chmod +x sqcogspur64ARMv8linuxht/bin/spur64 && \
-    ln -sf /opt/opensmalltalk-vm/sqcogspur64ARMv8linuxht/squeak /usr/local/bin/opensmalltalk-squeak
+    # Detect platform and download appropriate VM
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        echo "Downloading ARM64 VM for Apple Silicon/ARM64" && \
+        wget -q -O vm.tar.gz "https://github.com/OpenSmalltalk/opensmalltalk-vm/releases/download/202312181441/squeak.cog.spur_linux64ARMv8.tar.gz" && \
+        tar -xzf vm.tar.gz && \
+        chmod +x sqcogspur64ARMv8linuxht/squeak && \
+        chmod +x sqcogspur64ARMv8linuxht/bin/spur64 && \
+        ln -sf /opt/opensmalltalk-vm/sqcogspur64ARMv8linuxht/squeak /usr/local/bin/opensmalltalk-squeak; \
+    elif [ "$ARCH" = "x86_64" ]; then \
+        echo "Downloading x86_64 VM for Intel/AMD64" && \
+        wget -q -O vm.tar.gz "https://github.com/OpenSmalltalk/opensmalltalk-vm/releases/download/202312181441/squeak.cog.spur_linux64x64.tar.gz" && \
+        tar -xzf vm.tar.gz && \
+        chmod +x sqcogspur64linuxht/squeak && \
+        chmod +x sqcogspur64linuxht/bin/spur64 && \
+        ln -sf /opt/opensmalltalk-vm/sqcogspur64linuxht/squeak /usr/local/bin/opensmalltalk-squeak; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    rm -f vm.tar.gz
 
 # Note: We only use the bundled VM in sqcogspur64linuxht directory
 

@@ -1,11 +1,12 @@
 services:
-  # VNC version (recommended for Apple Silicon Mac)
+  # VNC version (recommended - works on Apple Silicon and Intel/AMD64)
   kestrel-vnc:
     build:
       context: .
       dockerfile: Dockerfile
       platforms:
         - linux/arm64
+        - linux/amd64
       args:
         SSH_USER: squeak
     container_name: kestrel-vnc
@@ -28,6 +29,7 @@ services:
       dockerfile: Dockerfile
       platforms:
         - linux/arm64
+        - linux/amd64
       args:
         SSH_USER: squeak
     container_name: kestrel-ssh
@@ -40,7 +42,7 @@ services:
       - ./image-data:/app/image-data:rw
     environment:
       - DISPLAY=${DISPLAY:-:0}
-    command: /app/scripts/start-ssh.sh
+    command: /app/start-ssh.sh
     restart: unless-stopped
 
   # Direct X11 version (for XQuartz)
@@ -50,6 +52,7 @@ services:
       dockerfile: Dockerfile
       platforms:
         - linux/arm64
+        - linux/amd64
       args:
         SSH_USER: squeak
     container_name: kestrel-x11
@@ -62,5 +65,5 @@ services:
       - ./image-data:/app/image-data:rw
     environment:
       - DISPLAY=${DISPLAY:-host.docker.internal:0}
-    command: /app/scripts/start-squeak.sh
+    command: /app/start-squeak.sh
     network_mode: host
